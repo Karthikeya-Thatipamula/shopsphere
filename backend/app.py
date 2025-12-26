@@ -22,9 +22,6 @@ CORS(app, supports_credentials=True)
 login_manager = LoginManager()
 login_manager.init_app(app)
 
-with app.app_context():
-    db.create_all()
-
 class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(80), unique=True, nullable=False)
