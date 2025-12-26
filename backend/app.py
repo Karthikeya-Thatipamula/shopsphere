@@ -3,6 +3,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user, login_required
+from sqlalchemy import create_engine, text
+from sqlalchemy.exc import OperationalError
 import os
 
 app = Flask(__name__, static_folder='../frontend')
@@ -11,6 +13,15 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your_secret_key') # Rep
 database_url = os.environ.get('DATABASE_URL')
 if database_url and database_url.startswith("postgres://"):
     database_url = database_url.replace("postgres://", "postgresql://", 1)
+
+if database_url:
+    try:
+        engine = create_engine(database_url)
+        with engine.connect() as connection:
+            connection.execute(text("SELECT 1"))
+    except OperationalError as e:
+        print(f"Warning: Could not connect to DATABASE_URL: {e}. Falling back to SQLite.")
+        database_url = None
 
 instance_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'instance')
 os.makedirs(instance_path, exist_ok=True)
